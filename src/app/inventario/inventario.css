@@ -1,0 +1,174 @@
+/* Estilos generales */
+:host {
+    display: flex;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+}
+
+/* --- Barra Lateral (Sidebar) --- */
+.sidebar {
+    width: 150px;
+    background-color: var(--color-principal);
+    padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.menu-icon {
+    font-size: 30px;
+    color: var(--color-blanco);
+    margin-bottom: 30px;
+    cursor: pointer;
+    padding: 5px;
+    border: none;
+    background: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: center;
+}
+
+.menu-icon span {
+    display: block;
+    width: 30px;
+    height: 3px;
+    background-color: var(--color-blanco);
+}
+
+.nav-link {
+    width: 100%;
+    padding: 15px 0;
+    text-align: left;
+    text-transform: uppercase;
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--color-texto);
+    text-decoration: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    padding-left: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.nav-link:last-of-type {
+    border-bottom: none;
+}
+
+.nav-link.active {
+    background-color: var(--color-fondo-oscuro);
+    color: var(--color-blanco);
+}
+
+.nav-link:hover:not(.active) {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-blanco);
+}
+
+/* --- Contenido Principal --- */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Cabecera del Contenido (Header) */
+.header {
+    background-color: var(--color-principal);
+    color: var(--color-blanco);
+    padding: 15px 20px;
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Botones CRUD */
+.crud-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.crud-btn {
+    background-color: var(--color-blanco);
+    color: var(--color-texto);
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.crud-btn:hover {
+    background-color: var(--color-fondo-oscuro);
+    color: var(--color-blanco);
+}
+
+.crud-btn.eliminar:hover {
+    background-color: #d32f2f;
+    color: var(--color-blanco);
+}
+
+/* Título del Inventario */
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+    color: var(--color-blanco);
+}
+
+/* Área de la Tabla */
+.table-container {
+    padding: 20px;
+    overflow-x: auto;
+}
+
+/* Estilos de la Tabla */
+.inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--color-blanco);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.inventory-table th, .inventory-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+
+.inventory-table th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: var(--color-texto);
+}
+
+.inventory-table thead tr {
+    background-color: var(--color-blanco);
+}
+
+.inventory-table tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+/* --- Pie de página o configuración --- */
+.settings-icon {
+    margin-top: auto;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 20px;
+    color: var(--color-blanco);
+    background-color: var(--color-fondo-oscuro);
+    width: 100%;
+    text-align: center;
+}
