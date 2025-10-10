@@ -20,21 +20,20 @@
     <div class="crud-buttons">
       <button class="crud-btn agregar" (click)="agregar()">➕ Agregar</button>
       <button class="crud-btn editar" (click)="editar()">✏️ Editar</button>
-      <button class="crud-btn eliminar" (click)="eliminar()">🗑️ Eliminar</button>
     </div>
   </header>
 
-  
   <div class="table-container">
     <table class="inventory-table" *ngIf="inventario.length > 0; else noData">
       <thead>
         <tr>
           <th>ID</th>
           <th>Producto</th>
-          <th>Cantidad</th>
+          <th>Humedad</th>
           <th>Bodega</th>
-          <th>Calidad</th>
+          <th>fermentacion</th>
           <th>Última fecha de llegada</th>
+          <th>Acciones</th> <!-- Nueva columna -->
         </tr>
       </thead>
       <tbody>
@@ -45,6 +44,11 @@
           <td>{{ item.bodega_codigo }}</td>
           <td>{{ item.fermentacion }}</td>
           <td>{{ item.fecha_entrada }}</td>
+          <td>
+            <button class="crud-btn eliminar" (click)="eliminar(item.id_inventario)">🗑️ Eliminar</button>
+            <!-- Puedes activar este si deseas -->
+            <!-- <button class="crud-btn editar" (click)="editar(item.id_inventario)">✏️ Editar</button> -->
+          </td>
         </tr>
       </tbody>
     </table>
@@ -54,4 +58,3 @@
     </ng-template>
   </div>
 </main>
-

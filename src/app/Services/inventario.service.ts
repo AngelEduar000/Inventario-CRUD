@@ -22,6 +22,10 @@ export class InventarioService {
 
   constructor(private http: HttpClient) {}
 
+  eliminarInventario(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
   getInventario(): Observable<InventarioItem[]> {
     return this.http.get<InventarioItem[]>(this.apiUrl);
   }

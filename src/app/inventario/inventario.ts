@@ -22,7 +22,28 @@ leer() {
     error: err => console.error('Error Inventario', err)
   });
 }
+
   agregar() { console.log('Agregar producto'); }
   editar() { console.log('Editar producto'); }
-  eliminar() { console.log('Eliminar producto'); }
+
+
+
+eliminar(id: string) {
+  if (!confirm('¿Estás seguro que quieres eliminar este ítem?')) {
+    return;
+  }
+  this.inventarioService.eliminarInventario(id).subscribe({
+    next: () => {
+      this.inventario = this.inventario.filter(item => item.id_inventario !== id);
+      alert('Ítem eliminado correctamente');
+    },
+    error: err => {
+      console.error('Error eliminando:', err);
+      alert('No se pudo eliminar el ítem');
+    }
+  });
+}
+
+
+
 }

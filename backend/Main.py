@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from typing import List
 from pydantic import BaseModel
+from fastapi import HTTPException
 
 app = FastAPI()
 # Usar comando env\Scripts\activate para activar el entorno virtual y luego ejecutar uvicorn Main:app --reload
@@ -75,7 +76,24 @@ def leer_inventario():
     finally:
         session.close()
 
-
+#Eliminar inventario
+@app.delete("/api/inventario/{id_inventario}", status_code=204)
+def eliminar_inventario(id_inventario: str):
+    session = SessionLocal()
+    try:
+        session.execute(text("SET search_path TO inventario_ms"))
+        result = session.execute(
+            text("""
+                SELECT inventario_ms.eliminar_registro_inventario(:id)
+            """), {"id": id_inventario}
+        )
+        eliminado = result.scalar()
+        session.commit()
+        if eliminado is None:
+            raise HTTPException(status_code=404, detail="No se encontró el registro para eliminar")
+        return None  # Para status 204 No Content
+    finally:
+        session.close()
 
 
 
