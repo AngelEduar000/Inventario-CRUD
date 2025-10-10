@@ -1,75 +1,55 @@
 <aside class="sidebar">
-    <div class="menu-icon">
-        <span></span>
-        <span></span>
-        <span></span>
-    </div>
-    <a href="#" class="nav-link active">Inventario</a>
-    <a href="#" class="nav-link">Pedidos</a>
-    <a href="#" class="nav-link">Envíos</a>
-    <a href="#" class="nav-link">Contables</a>
-    
-    <div class="settings-icon">⚙️</div>
+  <div class="menu-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <a href="#" class="nav-link active">Inventario</a>
+  <a href="#" class="nav-link">Pedidos</a>
+  <a href="#" class="nav-link">Envíos</a>
+  <a href="#" class="nav-link">Contables</a>
+
+  <div class="settings-icon">⚙️</div>
 </aside>
 
 <main class="main-content">
-    <header class="header">
-        <h1>Inventario</h1>
+  <header class="header">
+    <h1>Inventario</h1>
 
-        <div class="crud-buttons">
-            <button class="crud-btn agregar" (click)="agregar()">➕ Agregar</button>
-            <button class="crud-btn leer" (click)="leer()">👁️ Ver</button>
-            <button class="crud-btn editar" (click)="editar()">✏️ Editar</button>
-            <button class="crud-btn eliminar" (click)="eliminar()">🗑️ Eliminar</button>
-        </div>
-    </header>
-
-    <div class="table-container">
-        <table class="inventory-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Bodega</th>
-                    <th>Calidad</th>
-                    <th>Última fecha de llegada</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="crud-buttons">
+      <button class="crud-btn agregar" (click)="agregar()">➕ Agregar</button>
+      <button class="crud-btn editar" (click)="editar()">✏️ Editar</button>
+      <button class="crud-btn eliminar" (click)="eliminar()">🗑️ Eliminar</button>
     </div>
+  </header>
+
+  <div class="table-container">
+    <table class="inventory-table" *ngIf="inventario.length > 0; else noData">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Producto</th>
+          <th>Cantidad</th>
+          <th>Bodega</th>
+          <th>Calidad</th>
+          <th>Última fecha de llegada</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of inventario">
+          <td>{{ item.id_inventario }}</td>
+          <td>{{ item.producto_descripcion }}</td>
+          <td>{{ item.humedad }}</td>
+          <td>{{ item.bodega_codigo }}</td>
+          <td>{{ item.fermentacion }}</td>
+          <td>{{ item.fecha_entrada }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ng-template #noData>
+      <p>No hay registros de inventario disponibles.</p>
+    </ng-template>
+  </div>
 </main>
