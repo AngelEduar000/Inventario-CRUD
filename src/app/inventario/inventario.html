@@ -1,60 +1,108 @@
-<aside class="sidebar">
-  <div class="menu-icon">
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
-
-  <a href="#" class="nav-link active">Inventario</a>
-  <a href="#" class="nav-link">Pedidos</a>
-  <a href="#" class="nav-link">Envíos</a>
-  <a href="#" class="nav-link">Contables</a>
-
-  <div class="settings-icon">⚙️</div>
-</aside>
-
-<main class="main-content">
-  <header class="header">
-    <h1>Inventario</h1>
-
-    <div class="crud-buttons">
-      <button class="crud-btn agregar" (click)="agregar()">➕ Agregar</button>
-      <button class="crud-btn editar" (click)="editar()">✏️ Editar</button>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Inventario</title>
+  <link rel="stylesheet" href="inventario.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="menu-icon">
+      <span></span>
+      <span></span>
+      <span></span>
     </div>
-  </header>
 
-  <div class="table-container">
-    <table class="inventory-table" *ngIf="inventario.length > 0; else noData">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Producto</th>
-          <th>Humedad</th>
-          <th>Bodega</th>
-          <th>fermentacion</th>
-          <th>Última fecha de llegada</th>
-          <th>Acciones</th> <!-- Nueva columna -->
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let item of inventario">
-          <td>{{ item.id_inventario }}</td>
-          <td>{{ item.producto_descripcion }}</td>
-          <td>{{ item.humedad }}</td>
-          <td>{{ item.bodega_codigo }}</td>
-          <td>{{ item.fermentacion }}</td>
-          <td>{{ item.fecha_entrada }}</td>
-          <td>
-            <button class="crud-btn eliminar" (click)="eliminar(item.id_inventario)">🗑️ Eliminar</button>
-            <!-- Puedes activar este si deseas -->
-            <!-- <button class="crud-btn editar" (click)="editar(item.id_inventario)">✏️ Editar</button> -->
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <a href="#" class="nav-link active">Inventario</a>
+    <a href="#" class="nav-link">Pedidos</a>
+    <a href="#" class="nav-link">Envíos</a>
+    <a href="#" class="nav-link">Contables</a>
 
-    <ng-template #noData>
-      <p>No hay registros de inventario disponibles.</p>
-    </ng-template>
-  </div>
-</main>
+    <div class="settings-icon">⚙️</div>
+  </aside>
+
+  <main class="main-content">
+    <header class="header">
+      <h1>Inventario</h1>
+
+      <div class="crud-buttons">
+        <button class="crud-btn agregar" (click)="agregar()">➕ Agregar</button>
+      </div>
+    </header>
+
+    <!-- Formulario Modal -->
+    <div *ngIf="mostrarFormulario" class="modal-overlay">
+      <div class="modal-content">
+        <h2>{{ modoEdicion ? 'Editar' : 'Agregar' }} Producto</h2>
+        
+        <form (ngSubmit)="guardar()" class="form-container">
+          <div class="form-group">
+            <label>Producto:</label>
+            <input type="text" [(ngModel)]="itemTemporal.producto_descripcion" name="producto" required>
+          </div>
+
+          <div class="form-group">
+            <label>Humedad:</label>
+            <input type="number" step="0.1" [(ngModel)]="itemTemporal.humedad" name="humedad" required>
+          </div>
+
+          <div class="form-group">
+            <label>Fermentación:</label>
+            <input type="number" step="0.1" [(ngModel)]="itemTemporal.fermentacion" name="fermentacion" required>
+          </div>
+
+          <div class="form-group">
+            <label>Bodega:</label>
+            <input type="text" [(ngModel)]="itemTemporal.bodega_codigo" name="bodega" required>
+          </div>
+
+          <div class="form-group">
+            <label>Fecha de Entrada:</label>
+            <input type="date" [(ngModel)]="itemTemporal.fecha_entrada" name="fecha" required>
+          </div>
+
+          <div class="form-buttons">
+            <button type="button" class="crud-btn cancelar" (click)="cerrarFormulario()">Cancelar</button>
+            <button type="submit" class="crud-btn guardar">{{ modoEdicion ? 'Actualizar' : 'Guardar' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="inventory-table" *ngIf="inventario.length > 0; else noData">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Producto</th>
+            <th>Humedad</th>
+            <th>Bodega</th>
+            <th>Fermentación</th>
+            <th>Última fecha de llegada</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of inventario">
+            <td>{{ item.id_inventario }}</td>
+            <td>{{ item.producto_descripcion }}</td>
+            <td>{{ item.humedad }}</td>
+            <td>{{ item.bodega_codigo }}</td>
+            <td>{{ item.fermentacion }}</td>
+            <td>{{ item.fecha_entrada }}</td>
+            <td>
+              <div class="action-buttons">
+                <button class="crud-btn editar" (click)="editarItem(item)">✏️ Editar</button>
+                <button class="crud-btn eliminar" (click)="eliminar(item.id_inventario)">🗑️ Eliminar</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ng-template #noData>
+        <p>No hay registros de inventario disponibles.</p>
+      </ng-template>
+    </div>
+  </main>
+</body>
+</html>
