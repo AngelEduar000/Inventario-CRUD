@@ -97,6 +97,7 @@ def leer_inventario():
         session.close()
 
 # Crear nuevo inventario
+# Crear # Crear nuevo inventario
 @app.post("/api/inventario", response_model=InventarioItem)
 def crear_inventario(item: InventarioCreate):
     session = SessionLocal()
@@ -107,7 +108,72 @@ def crear_inventario(item: InventarioCreate):
         result = session.execute(text("SELECT gen_random_uuid() as new_id"))
         new_id = str(result.scalar())
         
-        # Insertar el nuevo registro
+        # VERIFICAR SI EL PRODUCTO EXISTE, SINO CREARLO
+        result = session.execute(
+            text("SELECT id_producto FROM producto WHERE id_producto = :id_producto"),
+            {"id_producto": item.id_producto}
+        )
+        producto_existe = result.fetchone()
+        
+        if not producto_existe:
+            # Crear nuevo producto
+            session.execute(
+                text("""
+                    INSERT INTO producto (id_producto, descripcion, humedad, fermentacion)
+                    VALUES (:id_producto, :descripcion, :humedad, :fermentacion)
+                """),
+                {
+                    "id_producto": item.id_producto,
+                    "descripcion": item.producto_descripcion,
+                    "humedad": item.humedad,
+                    "fermentacion": item.fermentacion
+                }
+            )
+        else:
+            # Actualizar producto existente
+            session.execute(
+                text("""
+                    UPDATE producto 
+                    SET descripcion = :descripcion, humedad = :humedad, fermentacion = :fermentacion
+                    WHERE id_producto = :id_producto
+                """),
+                {
+                    "descripcion": item.producto_descripcion,
+                    "humedad": item.humedad,
+                    "fermentacion": item.fermentacion,
+                    "id_producto": item.id_producto
+                }
+            )
+        
+        # BUSCAR BODEGA POR CÓDIGO (no por ID)
+        result = session.execute(
+            text("SELECT id_bodega FROM bodega WHERE codigo = :codigo"),
+            {"codigo": item.bodega_codigo}
+        )
+        bodega_existente = result.fetchone()
+        
+        id_bodega_final = item.id_bodega
+        
+        if bodega_existente:
+            # Usar la bodega existente
+            id_bodega_final = str(bodega_existente[0])
+            print(f"Usando bodega existente: {id_bodega_final} con código: {item.bodega_codigo}")
+        else:
+            # Crear nueva bodega
+            session.execute(
+                text("""
+                    INSERT INTO bodega (id_bodega, codigo)
+                    VALUES (:id_bodega, :codigo)
+                """),
+                {
+                    "id_bodega": item.id_bodega,
+                    "codigo": item.bodega_codigo
+                }
+            )
+            id_bodega_final = item.id_bodega
+            print(f"Creando nueva bodega: {id_bodega_final} con código: {item.bodega_codigo}")
+        
+        # Insertar el nuevo registro en inventario
         session.execute(
             text("""
                 INSERT INTO inventario (id_inventario, fecha_entrada, id_producto, id_bodega)
@@ -117,35 +183,7 @@ def crear_inventario(item: InventarioCreate):
                 "id_inventario": new_id,
                 "fecha_entrada": item.fecha_entrada,
                 "id_producto": item.id_producto,
-                "id_bodega": item.id_bodega
-            }
-        )
-        
-        # Actualizar producto si existe
-        session.execute(
-            text("""
-                UPDATE producto 
-                SET descripcion = :descripcion, humedad = :humedad, fermentacion = :fermentacion
-                WHERE id_producto = :id_producto
-            """),
-            {
-                "descripcion": item.producto_descripcion,
-                "humedad": item.humedad,
-                "fermentacion": item.fermentacion,
-                "id_producto": item.id_producto
-            }
-        )
-        
-        # Actualizar bodega si existe
-        session.execute(
-            text("""
-                UPDATE bodega 
-                SET codigo = :codigo
-                WHERE id_bodega = :id_bodega
-            """),
-            {
-                "codigo": item.bodega_codigo,
-                "id_bodega": item.id_bodega
+                "id_bodega": id_bodega_final
             }
         )
         
@@ -160,7 +198,7 @@ def crear_inventario(item: InventarioCreate):
             "producto_descripcion": item.producto_descripcion,
             "humedad": item.humedad,
             "fermentacion": item.fermentacion,
-            "id_bodega": item.id_bodega,
+            "id_bodega": id_bodega_final,
             "bodega_codigo": item.bodega_codigo
         }
         
@@ -169,8 +207,7 @@ def crear_inventario(item: InventarioCreate):
         raise HTTPException(status_code=500, detail=f"Error al crear inventario: {str(e)}")
     finally:
         session.close()
-
-# Actualizar inventario
+        
 @app.put("/api/inventario/{id_inventario}", response_model=InventarioItem)
 def actualizar_inventario(id_inventario: str, item: InventarioUpdate):
     session = SessionLocal()

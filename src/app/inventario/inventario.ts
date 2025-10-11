@@ -21,8 +21,8 @@ export class Inventario implements OnInit {
     fecha_entrada: '',
     id_producto: '',
     producto_descripcion: '',
-    humedad: 0,
-    fermentacion: 0,
+    humedad: null,
+    fermentacion: null,
     id_bodega: '',
     bodega_codigo: ''
   };
@@ -53,8 +53,8 @@ export class Inventario implements OnInit {
       fecha_entrada: new Date().toISOString().split('T')[0],
       id_producto: this.generateUUID(),
       producto_descripcion: '',
-      humedad: 0,
-      fermentacion: 0,
+      humedad: null,
+      fermentacion: null,
       id_bodega: this.generateUUID(),
       bodega_codigo: ''
     };
@@ -104,12 +104,18 @@ export class Inventario implements OnInit {
         },
         error: (err: any) => {
           console.error('Error actualizando:', err);
-          alert('No se pudo actualizar el ítem');
+          alert('No se pudo actualizar el ítem: ' + err.error?.detail || err.message);
         }
       });
     } else {
-      // Modo agregar
-      this.inventarioService.agregarInventario(this.itemTemporal).subscribe({
+      // Modo agregar - Asegurar que los números no sean null
+      const itemToSend: InventarioCreate = {
+        ...this.itemTemporal,
+        humedad: this.itemTemporal.humedad || 0,
+        fermentacion: this.itemTemporal.fermentacion || 0
+      };
+
+      this.inventarioService.agregarInventario(itemToSend).subscribe({
         next: (nuevoItem: InventarioItem) => {
           this.inventario.push(nuevoItem);
           this.cerrarFormulario();
@@ -117,7 +123,7 @@ export class Inventario implements OnInit {
         },
         error: (err: any) => {
           console.error('Error agregando:', err);
-          alert('No se pudo agregar el ítem');
+          alert('No se pudo agregar el ítem: ' + err.error?.detail || err.message);
         }
       });
     }
@@ -140,7 +146,7 @@ export class Inventario implements OnInit {
       },
       error: (err: any) => {
         console.error('Error eliminando:', err);
-        alert('No se pudo eliminar el ítem');
+        alert('No se pudo eliminar el ítem: ' + err.error?.detail || err.message);
       }
     });
   }
