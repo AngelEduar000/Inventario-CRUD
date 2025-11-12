@@ -1,7 +1,8 @@
-/* You can add global styles to this file, and also import other style files */
-:root {
-    --color-principal: #00bcd4;
-    --color-fondo-oscuro: #00a0b0;
-    --color-texto: #333;
-    --color-blanco: #fff;
+/* src/styles.css */
+
+/* Reseteo global para eliminar márgenes y paddings por defecto */
+html, body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* Buena práctica */
 }

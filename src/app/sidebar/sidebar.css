@@ -1,0 +1,73 @@
+/* :host es el elemento <app-sidebar> */
+:host {
+  /* En móvil, ocupa todo el ancho por defecto */
+  display: block;
+  width: 100%;
+}
+
+.sidebar {
+  /* Estilos base para el <nav class="sidebar"> */
+  width: 100%; /* Ocupa el 100% de su :host */
+  background-color: #1e293b;
+  color: white;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  
+  /* Clave: asegura que el sidebar intente ocupar toda la altura */
+  display: flex;
+  flex-direction: column;
+  height: 100%; 
+}
+
+.sidebar h3 {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar li {
+  margin-bottom: 10px;
+}
+
+.sidebar a {
+  color: white;
+  text-decoration: none;
+  padding: 10px 15px;
+  display: block;
+  border-radius: 8px;
+  transition: background-color 0.3s;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  background-color: #334155;
+}
+
+
+/* --- Media Query para Escritorio (Pantallas > 768px) --- */
+@media (min-width: 768px) {
+  
+  /* En escritorio, el <app-sidebar> (:host)
+     debe tener un ancho fijo y altura completa */
+  :host {
+    width: 220px;
+    height: 100vh; /* Ocupa toda la altura de la ventana */
+    flex-shrink: 0; /* Evita que se encoja */
+  }
+
+  .sidebar {
+    padding: 20px; /* Padding original */
+    box-shadow: none; /* Quitamos la sombra de móvil */
+    overflow-y: auto; /* Scroll independiente */
+  }
+
+  .sidebar li {
+    margin-bottom: 12px; /* Margen original */
+  }
+}

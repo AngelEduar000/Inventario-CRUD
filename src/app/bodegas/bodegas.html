@@ -1,0 +1,129 @@
+
+<div class="container">
+  <h1>🏢 Gestión de Bodegas</h1>
+  <div class="subtitle">Sistema conectado a Neon PostgreSQL con Triggers</div>
+
+  <!-- Panel de Estado: Conectado a las propiedades de TS -->
+  <div class="status-panel">
+    <div>
+      <strong>Estado:</strong>
+      <span [class]="statusClass">{{ statusMessage }}</span>
+    </div>
+    <div class="stats">
+      <div class="stat-card">
+        <!-- Bindeo de propiedad con {{ }} -->
+        <div class="stat-number">{{ bodegasCount }}</div>
+        <div class="stat-label">Bodegas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controles: Conectados a los métodos de TS con (click) y [(ngModel)] -->
+  <div class="controls">
+    <button class="btn btn-primary" (click)="loadBodegas()">
+      🔄 Actualizar
+    </button>
+    <button class="btn btn-success" (click)="openModal(null)">
+      ➕ Nueva Bodega
+    </button>
+    <div class="search-box">
+      <!-- Bindeo de dos vías con [(ngModel)] y evento (keyup.enter) -->
+      <input
+        type="text"
+        placeholder="Buscar por código o ID de bodega..."
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="handleSearch()"
+      />
+    </div>
+    <button class="btn btn-primary" (click)="handleSearch()">
+      🔍 Buscar
+    </button>
+  </div>
+
+  <!-- Estado de Carga: Controlado por *ngIf -->
+  <div *ngIf="isLoading" class="loading">
+    <div>🔄 Cargando bodegas...</div>
+  </div>
+
+  <!-- Tabla de Bodegas: Controlada por *ngIf y *ngFor -->
+  <table *ngIf="!isLoading && bodegas.length > 0" id="bodegasTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Código</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Loop de Angular: *ngFor -->
+      <tr *ngFor="let bodega of bodegas">
+        <td class="id-cell">{{ bodega.id_bodega }}</td>
+        <td>{{ bodega.codigo }}</td>
+        <td>
+          <button class="btn btn-primary" (click)="openModal(bodega)">
+            ✏️ Editar
+          </button>
+          <button class="btn btn-danger" (click)="deleteBodega(bodega)">
+            🗑️ Eliminar
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Estado Vacío: Controlado por *ngIf -->
+  <div
+    *ngIf="!isLoading && bodegas.length === 0"
+    id="emptyState"
+    class="empty-state"
+  >
+    <h3>📭 No hay bodegas registradas</h3>
+    <p>Comienza creando la primera bodega en el sistema</p>
+    <button
+      class="btn btn-success"
+      (click)="openModal(null)"
+      style="margin-top: 15px"
+    >
+      ➕ Crear Primera Bodega
+    </button>
+  </div>
+</div>
+
+<!-- Modal: Controlado por *ngIf y (ngSubmit) -->
+<div *ngIf="isModalOpen" id="bodegaModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <!-- Título dinámico -->
+      <h2 class="modal-title" id="modalTitle">
+        {{ editingId ? 'Editar Bodega' : 'Nueva Bodega' }}
+      </h2>
+      <button class="modal-close" (click)="closeModal()">&times;</button>
+    </div>
+
+    <!-- Formulario de Angular: (ngSubmit) -->
+    <form id="bodegaForm" (ngSubmit)="saveBodega()">
+      <div class="form-group">
+        <label for="codigo">Código de Bodega:</label>
+        <!-- Bindeo de formulario con [(ngModel)] -->
+        <input
+          type="text"
+          id="codigo"
+          required
+          placeholder="Ej: BODEGA_PRINCIPAL, ALMACEN_CENTRAL"
+          name="codigo"
+          [(ngModel)]="currentBodega.codigo"
+        />
+      </div>
+      <div class="modal-actions">
+        <button
+          type="button"
+          class="btn btn-danger"
+          (click)="closeModal()"
+        >
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-success">💾 Guardar Bodega</button>
+      </div>
+    </form>
+  </div>
+</div>

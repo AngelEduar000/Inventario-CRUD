@@ -1,0 +1,32 @@
+
+.container {
+  display: flex;
+  /* En móvil, los apilamos verticalmente */
+  flex-direction: column; 
+  min-height: 100vh; /* Que ocupe al menos toda la altura */
+  background: #f5f5f5;
+}
+
+.content {
+  /* Ocupa el espacio restante (verticalmente en móvil) */
+  flex: 1; 
+  padding: 150px;
+  overflow-y: auto; /* Permite scroll solo en el contenido */
+}
+
+
+/* --- Media Query para Escritorio (Pantallas > 768px) --- */
+@media (min-width: 768px) {
+  
+  .container {
+    /* Volvemos al layout horizontal */
+    flex-direction: row; 
+    /* Fijamos la altura para el efecto "full screen" */
+    height: 100vh;
+    overflow: hidden; /* Evita el scroll de la página entera */
+  }
+  
+  .content {
+    /* 'flex: 1' hace que ocupe el resto del ancho */
+  }
+}
