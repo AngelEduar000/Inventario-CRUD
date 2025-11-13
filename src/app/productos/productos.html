@@ -1,1 +1,119 @@
-<p>productos works!</p>
+<!-- 
+  VERSIÓN CORREGIDA CON CSS PURO
+  He eliminado todas las clases de Tailwind (como 'p-6', 'bg-blue-500', 'shadow-md', etc.)
+  y las he reemplazado con clases simples que definiremos en el archivo CSS.
+-->
+<div class="container">
+
+  <!-- Encabezado y Estadísticas -->
+  <header>
+    <h2>📦 Gestión de Productos</h2>
+    <section class="stats">
+      <div>Total Productos: <span>{{ productos.length }}</span></div>
+      <div>Total Proveedores: <span>{{ proveedores.length }}</span></div>
+    </section>
+  </header>
+
+  <!-- Controles Principales -->
+  <div class="controls">
+    <button (click)="abrirModal('nuevo')" class="btn btn-primary">
+      ➕ Nuevo Producto
+    </button>
+    <button (click)="cargarDatos()" class="btn btn-secondary">
+      🔄 Actualizar
+    </button>
+  </div>
+
+  <!-- Estado de Carga y Error -->
+  <section *ngIf="loading" class="loading">Cargando productos...</section>
+  <section *ngIf="error" class="error">{{ error }}</section>
+
+  <!-- Tabla de Productos -->
+  <div *ngIf="!loading && !error" class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ID Producto</th>
+          <th>Descripción</th>
+          <th>Proveedor</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <!-- Fila de "No hay datos" -->
+        <tr *ngIf="productos.length === 0">
+          <td colspan="4" class="empty-cell">No hay productos disponibles.</td>
+        </tr>
+        
+        <!-- Filas de datos -->
+        <tr *ngFor="let producto of productos">
+          <td>{{ producto.id_producto }}</td>
+          <td>{{ producto.descripcion }}</td>
+          <td>{{ getNombreProveedor(producto.cedula) }}</td>
+          <td class="actions-cell">
+            <button (click)="abrirModal('editar', producto)" class="btn btn-edit">Editar</button>
+            <button (click)="eliminarProducto(producto.id_producto)" class="btn btn-danger">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal para crear/editar productos -->
+  <div *ngIf="mostrarModal" class="modal-overlay">
+    <div class="modal">
+      
+      <!-- Encabezado del Modal -->
+      <div class="modal-header">
+        <h3>{{ modoEdicion ? '✏️ Editar Producto' : '➕ Nuevo Producto' }}</h3>
+        <button (click)="cerrarModal()" class="close-btn">&times;</button>
+      </div>
+
+      <!-- Cuerpo del Modal (Formulario) -->
+      <form [formGroup]="productoForm" (ngSubmit)="guardarProducto()">
+        
+        <div class="form-group">
+          <label for="id_producto">ID Producto *</label>
+          <input id="id_producto" type="text" formControlName="id_producto">
+          <div *ngIf="productoForm.controls['id_producto'].invalid && productoForm.controls['id_producto'].touched" class="form-error">
+            El ID del producto es obligatorio.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="descripcion">Descripción *</label>
+          <input id="descripcion" type="text" formControlName="descripcion">
+          <div *ngIf="productoForm.controls['descripcion'].invalid && productoForm.controls['descripcion'].touched" class="form-error">
+            La descripción es obligatoria.
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="cedula">Proveedor *</label>
+          <select id="cedula" formControlName="cedula">
+            <option value="">Seleccione un proveedor...</option>
+            <option *ngFor="let p of proveedores" [value]="p.cedula">
+              {{ p.nombre }} ({{ p.cedula }})
+            </option>
+          </select>
+          <div *ngIf="productoForm.controls['cedula'].invalid && productoForm.controls['cedula'].touched" class="form-error">
+            Debe seleccionar un proveedor.
+          </div>
+        </div>
+
+        <!-- Pie del Modal (Botones) -->
+        <div class="modal-footer">
+          <button (click)="cerrarModal()" type="button" class="btn btn-secondary">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="productoForm.invalid" class="btn btn-primary">
+            💾 Guardar
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+ 
+</div>
