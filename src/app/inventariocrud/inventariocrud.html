@@ -1,1 +1,105 @@
-<p>inventariocrud works!</p>
+<div class="container">
+<h2 class="title">🏭 Sistema de Gestión de Inventario</h2>
+
+<div class="status-box">
+ {{ systemStatus }}
+</div>
+
+<div class="actions">
+ <button class="btn add-btn" (click)="abrirModal('nuevo')">➕ Agregar Nuevo Registro</button>
+</div>
+
+<div class="modal-overlay" *ngIf="mostrarModal">
+ <div class="modal">
+ <div class="modal-header">
+ <h3>{{ modoEdicion ? '✏️ Editar Inventario' : 'Nuevo Registro de Inventario' }}</h3>
+ <button class="close-btn" (click)="cerrarModal()">✖</button>
+ </div>
+
+ <div class="modal-body">
+ <form #formInventario="ngForm">
+
+ <label>📦 Producto *</label>
+ <select [(ngModel)]="formInventarioData.id_producto" name="id_producto" required>
+ <option value="">Seleccionar producto...</option>
+ <option *ngFor="let p of productos" [value]="p.id_producto">{{ p.descripcion }}</option>
+ </select>
+
+<label>🏢 Bodega *</label>
+ <select [(ngModel)]="formInventarioData.id_bodega" name="id_bodega" required>
+<option value="">Seleccionar bodega...</option>
+<option *ngFor="let b of bodegas" [value]="b.id_bodega">{{ b.codigo }}</option>
+ </select>
+
+ <label>📅 Fecha Entrada</label>
+<input type="date" [(ngModel)]="formInventarioData.fecha_entrada" name="fecha_entrada" />
+
+ <label>📅 Fecha Salida</label>
+ <input type="date" [(ngModel)]="formInventarioData.fecha_salida" name="fecha_salida" />
+
+ <label>💧 Humedad *</label>
+<input type="number" [(ngModel)]="formInventarioData.humedad" name="humedad" required />
+
+<label>🌡️ Fermentación *</label>
+<input type="number" [(ngModel)]="formInventarioData.fermentacion" name="fermentacion" />
+
+ </form>
+ </div>
+
+<div class="modal-footer">
+ <button class="btn cancel-btn" (click)="cerrarModal()">Cancelar</button>
+<button class="btn save-btn" (click)="guardarInventario()">💾 {{ modoEdicion ? 'Actualizar' : 'Guardar' }}</button>
+ </div>
+ </div>
+ </div>
+
+<div class="search-bar">
+<input
+type="text"
+placeholder="Buscar por ID, producto, bodega..."
+ [(ngModel)]="searchTerm"
+ />
+<button (click)="buscarInventario()">🔍 Buscar</button>
+</div>
+
+<h4>📊 Registros de Inventario</h4>
+
+<div class="table-box">
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Producto</th>
+<th>Bodega</th>
+<th>Entrada</th>
+<th>Salida</th>
+<th>Humedad</th>
+<th>Fermentación</th>
+<th>Acciones</th>
+</tr>
+</thead>
+<tbody>
+      <tr *ngIf="inventario.length === 0"> 
+<td colspan="8">Sin registros disponibles</td>
+</tr>
+      <tr *ngFor="let item of inventarioMostrado">
+<td>{{ item.id_inventario }}</td>
+<td>{{ item.nombre_producto }}</td>
+<td>{{ item.nombre_bodega }}</td>
+<td>{{ item.fecha_entrada | date: 'dd/MM/yyyy' }}</td>
+<td>{{ item.fecha_salida ? (item.fecha_salida | date: 'dd/MM/yyyy') : '—' }}</td>
+<td>{{ item.humedad }}%</td>
+<td>{{ item.fermentacion }}%</td>
+<td>
+          <button class="btn edit-btn" (click)="abrirModal('editar', item)">✏️</button>
+<button class="btn delete-btn" (click)="eliminarInventario(item.id_inventario)">🗑️</button>
+</td>
+</tr>
+      </tbody>
+</table>
+</div>
+
+<div class="actions">
+<button class="btn refresh-btn" (click)="cargarInventario()">🔄 Actualizar</button>
+</div>
+</div>
