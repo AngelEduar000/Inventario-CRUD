@@ -1,0 +1,62 @@
+<div class="container">
+  <header>
+    <h1>📈 Reporte General del Sistema</h1>
+    <p class="subtitle">Indicadores clave de Inventario y Pedidos</p>
+  </header>
+
+  <!-- Controles (Solo botón de recargar) -->
+  <div class="controls">
+    <button class="btn btn-primary" type="button" (click)="cargarEstadisticas()">
+      <span>🔄</span> Recargar Reporte
+    </button>
+  </div>
+
+  <!-- TABLA DE REPORTE -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Indicador</th>
+          <th>Valor</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <!-- Cargando -->
+        <tr *ngIf="loading">
+          <td colspan="2" class="text-center">Cargando reporte...</td>
+        </tr>
+
+        <!-- Error -->
+        <tr *ngIf="!loading && error">
+          <td colspan="2" class="text-center" style="color: var(--danger-color);">
+            {{ error }}
+          </td>
+        </tr>
+
+        <!-- Resultados -->
+        <tr *ngIf="!loading && stats">
+          <td>Total de Productos en el Sistema</td>
+          <td>{{ stats.totalProductos }}</td>
+        </tr>
+        <tr *ngIf="!loading && stats">
+          <td>Total de Pedidos Activos (No recibidos)</td>
+          <td>{{ stats.totalPedidosActivos }}</td>
+        </tr>
+        <tr *ngIf="!loading && stats">
+          <td>Total de Proveedores</td>
+          <td>{{ stats.totalProveedores }}</td>
+        </tr>
+        <tr *ngIf="!loading && stats">
+          <td>Total de Bodegas</td>
+          <td>{{ stats.totalBodegas }}</td>
+        </tr>
+        <tr *ngIf="!loading && stats">
+          <td>Porcentaje de Entregas Cumplidas</td>
+          <td>{{ stats.porcentajeEntregasCumplidas }}%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

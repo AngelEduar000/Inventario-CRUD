@@ -11,7 +11,7 @@ import { ProveedorService } from '../Services/proveedor.service';
 export interface Producto {
   id_producto: string;
   descripcion: string;
-  cedula: string; // Clave foránea a Proveedor
+  cedula: string; 
 }
 
 export interface Proveedor {
@@ -26,11 +26,10 @@ export interface Proveedor {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   
-  // ✅ CORRECIÓN 1: Ajustado al nombre de archivo más convencional.
-  // Si tu archivo se llama 'productos.html', cámbialo de nuevo.
+
   templateUrl: './productos.html', 
   
-  styleUrls: ['./productos.css'] // (Asumiendo que tu CSS se llama 'productos.css')
+  styleUrls: ['./productos.css'] 
 })
 export class Productos implements OnInit {
 

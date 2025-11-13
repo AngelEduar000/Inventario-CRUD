@@ -5,6 +5,7 @@ import { inventarios } from './inventariocrud/inventariocrud';
 import { Pedidos } from './pedidos/pedidos';
 import { Productos } from './productos/productos';
 import { Proveedorescrud } from './proveedorescrud/proveedorescrud';
+import { Reportes } from './reportes/reportes';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'productos', pathMatch: 'full' },
@@ -13,5 +14,6 @@ export const routes: Routes = [
   { path: 'pedidos', component: Pedidos },
   { path: 'productos', component: Productos },
   { path: 'proveedorescrud', component: Proveedorescrud },
+  {path: 'reportes', component: Reportes },
   { path: '**', redirectTo: 'productos' },
 ];

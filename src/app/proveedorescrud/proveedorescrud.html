@@ -1,1 +1,225 @@
-<p>proveedorescrud works!</p>
+<div class="container">
+  <header>
+    <h1>Gestión de Proveedores</h1>
+    <p class="subtitle">Sistema de administración de proveedores</p>
+  </header>
+
+  <!-- CONTROLES -->
+  <div class="controls">
+    <div class="search-box">
+      <input
+        type="text"
+        placeholder="Buscar proveedor..."
+        [(ngModel)]="searchTerm"
+        (input)="searchSuppliers()"
+      />
+      <i>🔍</i>
+    </div>
+    <button class="btn btn-primary" type="button" (click)="openAddModal()">
+      <span>+</span> Agregar Proveedor
+    </button>
+  </div>
+
+  <!-- TABLA DE PROVEEDORES -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Cédula</th>
+          <th>Nombre</th>
+          <th>Teléfono</th>
+          <th>Correo</th>
+          <th>Ciudad</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <!-- Cargando -->
+        <tr *ngIf="loading">
+          <td colspan="7" class="text-center">Cargando proveedores...</td>
+        </tr>
+
+        <!-- Sin resultados -->
+        <tr *ngIf="!loading && filteredSuppliers.length === 0">
+          <td colspan="7" class="text-center">No se encontraron proveedores</td>
+        </tr>
+
+        <!-- Resultados -->
+        <tr *ngFor="let supplier of filteredSuppliers">
+          <td>{{ supplier.cedula }}</td>
+          <td>{{ supplier.nombre }}</td>
+          <td>{{ supplier.telefono || 'N/A' }}</td>
+          <td>{{ supplier.correo || 'N/A' }}</td>
+          <td>{{ supplier.ciudad || 'N/A' }}</td>
+          <td>
+            <span [ngClass]="supplier.activo ? 'status-active' : 'status-inactive'">
+              {{ supplier.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="actions">
+            <button
+              class="action-btn edit-btn"
+              type="button"
+              (click)="editSupplier(supplier.cedula)"
+              title="Editar proveedor"
+            >
+              ✏️
+            </button>
+            <button
+              class="action-btn delete-btn"
+              type="button"
+              (click)="deleteSupplier(supplier.cedula)"
+              title="Eliminar proveedor"
+            >
+              🗑️
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+</div>
+
+<!-- MODAL AGREGAR / EDITAR -->
+<div class="modal" [class.show]="modalVisible">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>{{ isEditing ? 'Editar Proveedor' : 'Agregar Proveedor' }}</h2>
+      <button class="close-btn" type="button" (click)="closeModal()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <form
+        #supplierForm="ngForm"
+        (ngSubmit)="saveSupplier()"
+        autocomplete="off"
+        novalidate
+      >
+        <div class="form-group">
+          <label for="cedula">Cédula *</label>
+          <input
+            type="text"
+            id="cedula"
+            name="cedula"
+            class="form-control"
+            [(ngModel)]="currentSupplier.cedula"
+            [readonly]="isEditing"
+            required
+            #cedula="ngModel"
+            [class.invalid]="cedula.invalid && cedula.touched"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="nombre">Nombre *</label>
+          <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            class="form-control"
+            [(ngModel)]="currentSupplier.nombre"
+            required
+            #nombre="ngModel"
+            [class.invalid]="nombre.invalid && nombre.touched"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="descripcion">Descripción</label>
+          <textarea
+            id="descripcion"
+            name="descripcion"
+            class="form-control"
+            [(ngModel)]="currentSupplier.descripcion"
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="telefono">Teléfono</label>
+            <input
+              type="text"
+              id="telefono"
+              name="telefono"
+              class="form-control"
+              [(ngModel)]="currentSupplier.telefono"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="correo">Correo</label>
+            <input
+              type="email"
+              id="correo"
+              name="correo"
+              class="form-control"
+              [(ngModel)]="currentSupplier.correo"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ciudad">Ciudad</label>
+            <input
+              type="text"
+              id="ciudad"
+              name="ciudad"
+              class="form-control"
+              [(ngModel)]="currentSupplier.ciudad"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="vereda">Vereda</label>
+            <input
+              type="text"
+              id="vereda"
+              name="vereda"
+              class="form-control"
+              [(ngModel)]="currentSupplier.vereda"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="observaciones">Observaciones</label>
+          <textarea
+            id="observaciones"
+            name="observaciones"
+            class="form-control"
+            [(ngModel)]="currentSupplier.observaciones"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              name="activo"
+              [(ngModel)]="currentSupplier.activo"
+            />
+            Activo
+          </label>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn" type="button" (click)="closeModal()">Cancelar</button>
+          
+
+          <button 
+            class="btn btn-primary" 
+            type="submit" 
+            [disabled]="supplierForm.invalid">
+            {{ isEditing ? 'Actualizar' : 'Guardar' }}
+          </button>
+
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

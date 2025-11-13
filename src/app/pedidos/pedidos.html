@@ -1,1 +1,232 @@
-<p>pedidos works!</p>
+<div class="container">
+  <header>
+    <h1>Gestión de Pedidos</h1>
+    <p class="subtitle">Sistema de administración de pedidos a proveedores</p>
+  </header>
+
+  <!-- CONTROLES -->
+  <div class="controls">
+    <div class="search-box">
+      <input
+        type="text"
+        placeholder="Buscar por ID, proveedor, producto..."
+        [(ngModel)]="searchTerm"
+        (input)="searchPedidos()"
+      />
+      <i>🔍</i>
+    </div>
+    <button class="btn btn-primary" type="button" (click)="openAddModal()">
+      <span>+</span> Agregar Pedido
+    </button>
+  </div>
+
+  <!-- Alerta de Mensajes -->
+  <div *ngIf="alertMessage" class="alert" [ngClass]="'alert-' + alertType">
+    {{ alertMessage }}
+  </div>
+
+  <!-- TABLA DE PEDIDOS -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ID Pedido</th>
+          <th>Proveedor</th>
+          <th>Producto</th>
+          <th>Fecha Entrega</th>
+          <th>Cantidad</th>
+          <th>Peso Total (kg)</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <!-- Cargando -->
+        <tr *ngIf="loading">
+          <td colspan="8" class="text-center">Cargando pedidos...</td>
+        </tr>
+
+        <!-- Sin resultados -->
+        <tr *ngIf="!loading && filteredPedidos.length === 0">
+          <td colspan="8" class="text-center">No se encontraron pedidos</td>
+        </tr>
+
+        <!-- Resultados -->
+        <tr *ngFor="let pedido of filteredPedidos">
+          <td>{{ pedido.id_pedido }}</td>
+          <td>{{ pedido.proveedor_nombre }}</td>
+          <td>{{ pedido.producto_desc }}</td>
+          <td>{{ pedido.fecha_entrega | date:'dd/MM/yyyy' }}</td>
+          <td>{{ pedido.cantidad }}</td>
+          <td>{{ pedido.peso_total || 'N/A' }}</td>
+          <td>
+            <span [ngClass]="pedido.recibido ? 'status-active' : 'status-inactive'">
+              {{ pedido.recibido ? 'Recibido' : 'Pendiente' }}
+            </span>
+          </td>
+          <td class="actions">
+            <button
+              class="action-btn edit-btn"
+              type="button"
+              (click)="editPedido(pedido)"
+              title="Editar pedido"
+            >
+              ✏️
+            </button>
+            <button
+              class="action-btn delete-btn"
+              type="button"
+              (click)="deletePedido(pedido.id_pedido)"
+              title="Eliminar pedido"
+            >
+              🗑️
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- MODAL AGREGAR / EDITAR -->
+<div class="modal" [class.show]="modalVisible">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>{{ isEditing ? 'Editar Pedido' : 'Agregar Pedido' }}</h2>
+      <button class="close-btn" type="button" (click)="closeModal()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <form
+        #pedidoForm="ngForm"
+        (ngSubmit)="savePedido()"
+        autocomplete="off"
+        novalidate
+      >
+        
+        <!-- Dropdown de Proveedores -->
+        <div class="form-group">
+          <label for="cedula">Proveedor *</label>
+          <select 
+            id="cedula" 
+            name="cedula" 
+            class="form-control"
+            [(ngModel)]="currentPedido.cedula"
+            required
+            #cedula="ngModel"
+            [class.invalid]="cedula.invalid && cedula.touched"
+          >
+            <option value="" disabled>Seleccione un proveedor...</option>
+            <option *ngFor="let p of proveedores" [value]="p.cedula">
+              {{ p.nombre }} ({{ p.cedula }})
+            </option>
+          </select>
+        </div>
+
+        <!-- Dropdown de Productos -->
+        <div class="form-group">
+          <label for="id_producto">Producto *</label>
+          <select 
+            id="id_producto" 
+            name="id_producto" 
+            class="form-control"
+            [(ngModel)]="currentPedido.id_producto"
+            required
+            #id_producto="ngModel"
+            [class.invalid]="id_producto.invalid && id_producto.touched"
+          >
+            <option value="" disabled>Seleccione un producto...</option>
+            <option *ngFor="let p of productos" [value]="p.id_producto">
+              {{ p.descripcion }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <!-- Fecha de Entrega -->
+          <div class="form-group">
+            <label for="fecha_entrega">Fecha Entrega *</label>
+            <input
+              type="date"
+              id="fecha_entrega"
+              name="fecha_entrega"
+              class="form-control"
+              [ngModel]="currentPedido.fecha_entrega"
+              (ngModelChange)="currentPedido.fecha_entrega = $event"
+              required
+              #fecha_entrega="ngModel"
+              [class.invalid]="fecha_entrega.invalid && fecha_entrega.touched"
+            />
+          </div>
+
+          <!-- Cantidad -->
+          <div class="form-group">
+            <label for="cantidad">Cantidad *</label>
+            <input
+              type="number"
+              id="cantidad"
+              name="cantidad"
+              class="form-control"
+              [(ngModel)]="currentPedido.cantidad"
+              required
+              min="1"
+              #cantidad="ngModel"
+              [class.invalid]="cantidad.invalid && cantidad.touched"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <!-- Peso Total -->
+          <div class="form-group">
+            <label for="peso_total">Peso Total (kg)</label>
+            <input
+              type="number"
+              id="peso_total"
+              name="peso_total"
+              class="form-control"
+              [(ngModel)]="currentPedido.peso_total"
+              min="0"
+            />
+          </div>
+
+          <!-- Checkbox Recibido (Solo en modo Edición) -->
+          <div class="form-group" *ngIf="isEditing">
+            <label class="checkbox-label" style="margin-top: 30px;">
+              <input
+                type="checkbox"
+                name="recibido"
+                [(ngModel)]="currentPedido.recibido"
+              />
+              Marcar como Recibido
+            </label>
+          </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="form-group">
+          <label for="observaciones">Observaciones</label>
+          <textarea
+            id="observaciones"
+            name="observaciones"
+            class="form-control"
+            [(ngModel)]="currentPedido.observaciones"
+          ></textarea>
+        </div>
+
+        <!-- Botones del Modal -->
+        <div class="modal-footer">
+          <button class="btn" type="button" (click)="closeModal()">Cancelar</button>
+          <button 
+            class="btn btn-primary" 
+            type="submit" 
+            [disabled]="pedidoForm.invalid">
+            {{ isEditing ? 'Actualizar' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
