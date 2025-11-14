@@ -207,13 +207,7 @@ app.delete('/api/pedidos/:id', async (req, res) => {
 // ============================================
 // FRONTEND
 // ============================================
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
-app.get('/pedidos', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'pedidos.html'));
-});
 
 // ============================================
 // MANEJO DE ERRORES

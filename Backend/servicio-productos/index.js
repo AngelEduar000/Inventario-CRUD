@@ -222,13 +222,7 @@ app.delete('/api/proveedores/:cedula', async (req,res)=>{
   }
 });
 
-// --------------------
-// SPA: manejar cualquier otra ruta
-// --------------------
-app.use((req, res, next) => {
-  if(req.path.startsWith('/api')) return next();
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+
 
 // --------------------
 // Manejo de errores global

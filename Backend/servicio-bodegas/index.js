@@ -8,7 +8,6 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
 
 // Conexión a Neon
 const pool = new Pool({
@@ -118,10 +117,7 @@ app.get('/api/bodegas/buscar/:termino', async (req, res) => {
     }
 });
 
-// Ruta principal
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'bodegas.html'));
-});
+
 
 // Iniciar servidor
 const PORT = 3000;

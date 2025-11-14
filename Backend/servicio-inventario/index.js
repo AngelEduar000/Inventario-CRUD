@@ -207,10 +207,6 @@ app.get('/api/inventario/buscar/:termino', async (req, res) => {
   }
 });
 
-// ✅ Ruta principal
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
 // 404
 app.use((req, res) => {
