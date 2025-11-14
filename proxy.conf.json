@@ -1,0 +1,27 @@
+{
+  "/api/bodegas": {
+    "target": "http://localhost:3000",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/api/inventario": {
+    "target": "http://localhost:3001",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/api/pedidos": {
+    "target": "http://localhost:3005",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/api/productos": {
+    "target": "http://localhost:3004",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/api/reportes": {
+    "target": "http://localhost:3006",
+    "secure": false,
+    "changeOrigin": true
+  }
+}
