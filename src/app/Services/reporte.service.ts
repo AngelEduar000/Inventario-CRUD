@@ -15,7 +15,8 @@ providedIn: 'root'
 export class ReporteService {
 
 // API que acabamos de crear en el backend (puerto 3005)
-private apiUrl = 'http://localhost:3006/api/dashboard-stats';
+
+    private apiUrl = '/api/reportes/dashboard-stats';
 
 constructor() { }
 

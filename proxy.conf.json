@@ -1,27 +1,51 @@
 {
-  "/api/bodegas": {
+    "/api/bodegas/status": { 
     "target": "http://localhost:3000",
     "secure": false,
-    "changeOrigin": true
+    "pathRewrite": {
+      "^/api/bodegas/status": "/api/status"
+    }
+  },
+"/api/bodegas": { 
+    "target": "http://localhost:3000",
+    "secure": false,
+    "pathRewrite": {
+      "^/api/bodegas": "/api/bodegas" 
+    }
   },
   "/api/inventario": {
     "target": "http://localhost:3001",
     "secure": false,
-    "changeOrigin": true
+    "pathRewrite": {
+      "^/api/inventario": "/api"
+    }
   },
   "/api/pedidos": {
     "target": "http://localhost:3005",
     "secure": false,
-    "changeOrigin": true
+    "pathRewrite": {
+      "^/api/pedidos": "/api"
+    }
   },
   "/api/productos": {
     "target": "http://localhost:3004",
     "secure": false,
-    "changeOrigin": true
+    "pathRewrite": {
+      "^/api/productos": "/api/productos"
+    }
+  },
+  "/api/proveedores": {
+    "target": "http://localhost:3004",
+    "secure": false,
+    "pathRewrite": {
+      "^/api/proveedores": "/api/proveedores"
+    }
   },
   "/api/reportes": {
     "target": "http://localhost:3006",
     "secure": false,
-    "changeOrigin": true
+    "pathRewrite": {
+      "^/api/reportes": "/api"
+    }
   }
 }

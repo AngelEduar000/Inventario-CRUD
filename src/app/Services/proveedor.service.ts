@@ -59,7 +59,7 @@ export interface ProveedorUpdate {
 export class ProveedorService {
 
   // URL base de tu API (ajusta el puerto y la ruta si es necesario)
-  private apiUrl = 'http://localhost:3004/api/proveedores';
+  private apiUrl = '/api/proveedores';
 
   constructor(private http: HttpClient) { }
 

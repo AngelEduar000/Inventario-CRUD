@@ -58,7 +58,7 @@ export interface ProductoDropdown {
 export class PedidoService {
 
   // El puerto 3005 es de tu backend de pedidos
-  private API_BASE = 'http://localhost:3005/api';
+  private API_BASE = '/api/pedidos';
 
   constructor() { }
 

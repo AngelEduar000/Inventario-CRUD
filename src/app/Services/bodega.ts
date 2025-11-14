@@ -18,10 +18,10 @@ export interface StatusResponse {
 })
 export class BodegaService {
   
-  // 2. ¡IMPORTANTE! Esta es la URL de tu microservicio
-  // Asegúrate de que el puerto (3001) sea el correcto
-  private apiUrl = 'http://localhost:3000/api/bodegas'; 
-  private statusUrl = 'http://localhost:3000/api/status';
+
+  private apiUrl = '/api/bodegas';
+  private statusUrl = '/api/bodegas/status';   // si tu backend usa /status
+
 
   // 3. Inyectamos el HttpClient de Angular
   constructor(private http: HttpClient) { }

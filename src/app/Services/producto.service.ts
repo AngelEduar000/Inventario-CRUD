@@ -40,8 +40,8 @@ export interface ProductoUpdate {
 export class ProductoService {
 
   // Asumo que tu API de productos vive en la misma base que la de inventario
-  private baseApiUrl = 'http://localhost:3004/api';
-  private productosUrl = `${this.baseApiUrl}/productos`;
+ private baseApiUrl = '/api/productos';
+  private productosUrl = `${this.baseApiUrl}`;
 
   constructor(private http: HttpClient) { }
 

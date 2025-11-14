@@ -55,7 +55,7 @@ export interface TestResponse {
 })
 export class InventarioService {
 
-  private baseApiUrl = 'http://localhost:3001/api';
+  private baseApiUrl = '/api/inventario'; 
 
   private inventarioUrl = `${this.baseApiUrl}/inventario`;
   private productosUrl = `${this.baseApiUrl}/productos`;
