@@ -44,8 +44,8 @@ export class Proveedorescrud implements OnInit {
   currentSupplier: Supplier = this.createEmptySupplier();
 
   /** URLs API (ajusta si es necesario) */
-  private API_BASE = 'http://localhost:3004/api/proveedores';
-  private API_TEST = 'http://localhost:3004/api/test';
+  private API_BASE = 'api/proveedores';
+  private API_TEST = 'api/test';
 
   // -----------------------------------------------------------
   // CICLO DE VIDA
