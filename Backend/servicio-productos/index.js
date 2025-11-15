@@ -7,63 +7,74 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3004;
 
-// --------------------
-// Middleware
-// --------------------
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
-
-// --------------------
-// Configuración de la base de datos
-// --------------------
+// ============================================
+// CONEXIÓN A NEON
+// ============================================
 const pool = new Pool({
+  // Nota: Es mejor usar process.env.DATABASE_URL si está en .env
   connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_6OuAWfLD8rvk@ep-withered-star-aetjn118-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require',
   ssl: { rejectUnauthorized: false }
 });
 
-// --------------------
-// Probar conexión a la base de datos
-// --------------------
+// ============================================
+// MIDDLEWARES
+// ============================================
+app.use(cors()); 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public'))); // Usar path.join
+
+// Evitar caché
+app.use((req, res, next) => {
+  res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.header('Pragma', 'no-cache');
+  res.header('Expires', '0');
+  next();
+});
+
+// ============================================
+// TEST DE CONEXIÓN Y ESTADO (Mejora: Usando esquemas explícitos)
+// ============================================
 async function testConnection() {
+  let client;
   try {
-    const client = await pool.connect();
+    client = await pool.connect();
+    // Probamos acceso explícito a las tablas en sus respectivos esquemas
     const proveedoresResult = await client.query('SELECT COUNT(*) FROM pedidos_ms.proveedor WHERE activo = true');
     const productosResult = await client.query('SELECT COUNT(*) FROM inventario_ms.producto');
 
     console.log('✅ Conexión a la base de datos establecida correctamente');
     console.log(`👥 Proveedores activos: ${proveedoresResult.rows[0].count}`);
     console.log(`📊 Productos en inventario: ${productosResult.rows[0].count}`);
-
-    client.release();
   } catch (error) {
     console.error('❌ Error conectando a la base de datos:', error.message);
+  } finally {
+    if (client) client.release();
   }
 }
 
-// --------------------
-// Rutas API
-// --------------------
+// ============================================
+// RUTAS API
+// ============================================
 
 // Ruta de prueba
 app.get('/api/test', (req, res) => {
-  res.json({ success: true, message: 'API funcionando correctamente', timestamp: new Date().toISOString() });
+  res.json({ success: true, message: 'API funcionando correctamente (Servicio 3004)', timestamp: new Date().toISOString() });
 });
 
 // ====================
 // CRUD PRODUCTOS
+// (Usamos 'inventario_ms.producto' y 'pedidos_ms.proveedor')
 // ====================
 
 // Obtener todos los productos
 app.get('/api/productos', async (req, res) => {
   try {
     console.log('🔹 /api/productos llamado');
-    await pool.query('SET search_path TO inventario_ms');
     const result = await pool.query(`
       SELECT p.id_producto, p.descripcion, p.cedula,
              COALESCE(pr.nombre,'Proveedor no encontrado') AS nombre_proveedor
-      FROM producto p
+      FROM inventario_ms.producto p
       LEFT JOIN pedidos_ms.proveedor pr ON p.cedula = pr.cedula
       ORDER BY p.id_producto DESC
     `);
@@ -78,8 +89,7 @@ app.get('/api/productos', async (req, res) => {
 app.get('/api/productos/:id', async (req,res)=>{
   try{
     const { id } = req.params;
-    await pool.query('SET search_path TO inventario_ms');
-    const result = await pool.query('SELECT * FROM producto WHERE id_producto=$1',[id]);
+    const result = await pool.query('SELECT * FROM inventario_ms.producto WHERE id_producto=$1',[id]);
     if(result.rows.length===0) return res.status(404).json({ success:false, error:'Producto no encontrado' });
     res.json({ success:true, data: result.rows[0] });
   }catch(e){
@@ -93,14 +103,16 @@ app.post('/api/productos', async (req,res)=>{
     const { descripcion, cedula } = req.body;
     if(!descripcion || !cedula) return res.status(400).json({ success:false, error:'Descripcion y cedula obligatorios' });
 
-    await pool.query('SET search_path TO inventario_ms');
     const result = await pool.query(
-      'INSERT INTO producto (descripcion, cedula) VALUES ($1,$2) RETURNING *',
+      'INSERT INTO inventario_ms.producto (descripcion, cedula) VALUES ($1,$2) RETURNING *',
       [descripcion, cedula]
     );
     res.status(201).json({ success:true, data: result.rows[0] });
   }catch(e){
-    res.status(500).json({ success:false, error:e.message });
+    // Error 23503: Violación de FK (proveedor no existe)
+    // Error 23505: Violación de UNIQUE (proveedor ya tiene un producto con esa descripción)
+    if(e.code==='23503') res.status(400).json({ success:false, error:'Proveedor no encontrado (Cédula incorrecta)' });
+    else res.status(500).json({ success:false, error:e.message });
   }
 });
 
@@ -111,15 +123,15 @@ app.put('/api/productos/:id', async (req,res)=>{
     const { descripcion, cedula } = req.body;
     if(!descripcion || !cedula) return res.status(400).json({ success:false, error:'Descripcion y cedula obligatorios' });
 
-    await pool.query('SET search_path TO inventario_ms');
     const result = await pool.query(
-      'UPDATE producto SET descripcion=$1, cedula=$2 WHERE id_producto=$3 RETURNING *',
+      'UPDATE inventario_ms.producto SET descripcion=$1, cedula=$2 WHERE id_producto=$3 RETURNING *',
       [descripcion, cedula, id]
     );
     if(result.rows.length===0) return res.status(404).json({ success:false, error:'Producto no encontrado' });
     res.json({ success:true, data: result.rows[0] });
   }catch(e){
-    res.status(500).json({ success:false, error:e.message });
+    if(e.code==='23503') res.status(400).json({ success:false, error:'Proveedor no encontrado (Cédula incorrecta)' });
+    else res.status(500).json({ success:false, error:e.message });
   }
 });
 
@@ -127,8 +139,7 @@ app.put('/api/productos/:id', async (req,res)=>{
 app.delete('/api/productos/:id', async (req,res)=>{
   try{
     const { id } = req.params;
-    await pool.query('SET search_path TO inventario_ms');
-    const result = await pool.query('DELETE FROM producto WHERE id_producto=$1 RETURNING *',[id]);
+    const result = await pool.query('DELETE FROM inventario_ms.producto WHERE id_producto=$1 RETURNING *',[id]);
     if(result.rows.length===0) return res.status(404).json({ success:false, error:'Producto no encontrado' });
     res.json({ success:true, message:'Producto eliminado correctamente' });
   }catch(e){
@@ -138,15 +149,17 @@ app.delete('/api/productos/:id', async (req,res)=>{
 
 // ====================
 // CRUD PROVEEDORES
+// (Usamos 'pedidos_ms.proveedor')
 // ====================
 
 // Obtener todos los proveedores
 app.get('/api/proveedores', async (req,res)=>{
   try{
-    await pool.query('SET search_path TO pedidos_ms');
-    const result = await pool.query('SELECT * FROM proveedor ORDER BY nombre');
+    // ====> CORRECCIÓN AQUÍ: CAMBIO DE 'proveedores' A 'proveedor' <====
+    const result = await pool.query('SELECT * FROM pedidos_ms.proveedor ORDER BY nombre');
     res.json({ success:true, data: result.rows });
   }catch(e){
+    console.error('Error al obtener proveedores:', e.message);
     res.status(500).json({ success:false, error:e.message });
   }
 });
@@ -155,8 +168,7 @@ app.get('/api/proveedores', async (req,res)=>{
 app.get('/api/proveedores/:cedula', async (req,res)=>{
   try{
     const { cedula } = req.params;
-    await pool.query('SET search_path TO pedidos_ms');
-    const result = await pool.query('SELECT * FROM proveedor WHERE cedula=$1', [cedula]);
+    const result = await pool.query('SELECT * FROM pedidos_ms.proveedor WHERE cedula=$1', [cedula]);
     if(result.rows.length===0) return res.status(404).json({ success:false, error:'Proveedor no encontrado' });
     res.json({ success:true, data:result.rows[0] });
   }catch(e){
@@ -170,9 +182,8 @@ app.post('/api/proveedores', async (req,res)=>{
     const { cedula,nombre,descripcion,telefono,correo,ciudad,vereda,observaciones,activo } = req.body;
     if(!cedula||!nombre) return res.status(400).json({ success:false, error:'Cédula y nombre obligatorios' });
 
-    await pool.query('SET search_path TO pedidos_ms');
     const result = await pool.query(
-      `INSERT INTO proveedor 
+      `INSERT INTO pedidos_ms.proveedor 
        (cedula,nombre,descripcion,telefono,correo,ciudad,vereda,observaciones,activo)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
       [cedula,nombre,descripcion||null,telefono||null,correo||null,ciudad||null,vereda||null,observaciones||null,activo!==false]
@@ -191,9 +202,8 @@ app.put('/api/proveedores/:cedula', async (req,res)=>{
     const { nombre,descripcion,telefono,correo,ciudad,vereda,observaciones,activo } = req.body;
     if(!nombre) return res.status(400).json({ success:false, error:'Nombre obligatorio' });
 
-    await pool.query('SET search_path TO pedidos_ms');
     const result = await pool.query(
-      `UPDATE proveedor SET nombre=$1, descripcion=$2, telefono=$3, correo=$4, ciudad=$5, vereda=$6, observaciones=$7, activo=$8
+      `UPDATE pedidos_ms.proveedor SET nombre=$1, descripcion=$2, telefono=$3, correo=$4, ciudad=$5, vereda=$6, observaciones=$7, activo=$8
        WHERE cedula=$9 RETURNING *`,
       [nombre,descripcion||null,telefono||null,correo||null,ciudad||null,vereda||null,observaciones||null,activo!==false, cedula]
     );
@@ -208,16 +218,15 @@ app.put('/api/proveedores/:cedula', async (req,res)=>{
 app.delete('/api/proveedores/:cedula', async (req,res)=>{
   try{
     const { cedula } = req.params;
-    await pool.query('SET search_path TO pedidos_ms');
-    const result = await pool.query('DELETE FROM proveedor WHERE cedula=$1 RETURNING *',[cedula]);
+    const result = await pool.query('DELETE FROM pedidos_ms.proveedor WHERE cedula=$1 RETURNING *',[cedula]);
     if(result.rows.length===0) return res.status(404).json({ success:false, error:'Proveedor no encontrado' });
     res.json({ success:true, message:'Proveedor eliminado correctamente' });
   }catch(e){
-    if(e.code==='23503') res.status(400).json({ success:false, error:'No se puede eliminar proveedor con pedidos asociados' });
+    // 23503: Violación de llave foránea (pedido asociado)
+    if(e.code==='23503') res.status(400).json({ success:false, error:'No se puede eliminar proveedor con pedidos o productos asociados' });
     else res.status(500).json({ success:false, error:e.message });
   }
 });
-
 
 
 // --------------------
@@ -225,14 +234,16 @@ app.delete('/api/proveedores/:cedula', async (req,res)=>{
 // --------------------
 app.use((err, req, res, next) => {
   console.error('❌ Error global:', err);
-  res.status(500).json({ success:false, error:'Error interno del servidor' });
+  // Asegúrate de enviar un mensaje JSON
+  res.status(500).json({ success:false, error:'Error interno del servidor. Revisar logs.' });
 });
 
 // --------------------
 // Iniciar servidor
 // --------------------
 app.listen(port, async ()=>{
-  console.log('🚀 Servidor iniciado en puerto', port);
+  console.log(`🚀 Servidor de PRODUCTOS/PROVEEDORES ejecutándose en http://localhost:${port}`);
+  console.log(`🔍 Test de Proveedores: http://localhost:${port}/api/test`);
   await testConnection();
 });
 

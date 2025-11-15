@@ -21,7 +21,6 @@ import {
   styleUrls: ['./inventariocrud.css']
 })
 export class inventarios implements OnInit {
-
   // --- Estado ---
   public systemStatus = 'Inicializando...';
   public statusType = 'info';
@@ -35,6 +34,9 @@ export class inventarios implements OnInit {
   public bodegas: Bodega[] = [];
   public searchTerm = '';
   public resultCount = 0;
+
+  // ✅ CORRECCIÓN: Añadida variable para prevenir doble clic
+  public isSaving = false; 
 
   // --- Modal Angular ---
   public mostrarModal = false;
@@ -76,13 +78,10 @@ export class inventarios implements OnInit {
         this.bodegas = bodegasData;
         console.log('Productos y Bodegas cargados.');
         
-        // --- 🕵️‍♂️ NUEVO DEBUG ---
-        // ¡Revisa esto en tu consola F12!
         console.log('--- 1. LISTA DE PRODUCTOS (La "lista maestra") ---');
         console.table(this.productos);
         console.log('--- 2. LISTA DE BODEGAS (La "lista maestra") ---');
         console.table(this.bodegas);
-        // --- FIN DEL DEBUG ---
 
         this.cargarInventario();
       },
@@ -97,14 +96,10 @@ export class inventarios implements OnInit {
   cargarInventario(): void {
     this.inventarioService.getInventario().subscribe({
       next: (data) => {
-        
-        // --- 🕵️‍♂️ NUEVO DEBUG ---
         console.log('--- 3. LISTA DE INVENTARIO (Los IDs que vamos a buscar) ---');
         console.table(data);
-        // --- FIN DEL DEBUG ---
 
-        this.inventario = data; // 1. Guardamos datos crudos
-        // 2. Creamos la versión para la vista (con nombres ya incluidos)
+        this.inventario = data; 
         this.inventarioMostrado = this.procesarInventarioParaVista(data); 
         this.resultCount = data.length;
       },
@@ -115,26 +110,19 @@ export class inventarios implements OnInit {
   /**
    * Esta función une el inventario con los nombres de producto/bodega.
    */
- private procesarInventarioParaVista(data: InventarioItem[]): any[] {
-    
+  private procesarInventarioParaVista(data: InventarioItem[]): any[] {
     if (this.productos.length === 0 || this.bodegas.length === 0) {
-      return data.map(item => ({ ...item, nombre_producto: '...', nombre_bodega: '...' }));
+      return data.map(item => ({ ...item, nombre_producto: 'Cargando...', nombre_bodega: 'Cargando...' }));
     }
 
     return data.map(item => {
-      
       const idProdBuscar = String(item.id_producto).trim();
       const prod = this.productos.find(p => String(p.id_producto).trim() == idProdBuscar);
-      
+
       const idBodBuscar = String(item.id_bodega).trim();
       const bod = this.bodegas.find(b => String(b.id_bodega).trim() == idBodBuscar);
 
-      // --- ASIGNACIÓN FINAL (AQUÍ ESTÁ LA CORRECCIÓN) ---
-
-      // 👇 Cambia 'prod.nombre_producto' por 'prod.descripcion'
       const nombreProdFinal = (prod && prod.descripcion) ? prod.descripcion : '(No Encontrado)';
-      
-      // 👇 Cambia 'bod.nombre_bodega' por 'bod.codigo'
       const nombreBodFinal = (bod && bod.codigo) ? bod.codigo : '(No Encontrado)';
 
       return {
@@ -146,21 +134,48 @@ export class inventarios implements OnInit {
   }
 
   // --- Buscar ---
-  buscarInventario(): void {
-    if (!this.searchTerm.trim()) {
-      this.cargarInventario();
-      return;
-    }
-    this.inventarioService.buscarInventario(this.searchTerm).subscribe({
-      next: (data) => {
-        this.inventario = data; // 1. Guardamos datos crudos
-        // 2. Creamos la versión para la vista (con nombres ya incluidos)
-        this.inventarioMostrado = this.procesarInventarioParaVista(data);
-        this.resultCount = data.length;
-      },
-      error: (err) => this.showAlert(err.message, 'danger')
-    });
-  }
+  // --- Buscar ---
+buscarInventario(): void {
+ if (!this.searchTerm.trim()) {
+ this.cargarInventario();
+ return;
+ }
+
+ this.inventarioService.buscarInventario(this.searchTerm).subscribe({
+ next: (data) => { 
+        const response: any = data; 
+        console.log('Respuesta de la API de Búsqueda:', response);
+
+        let datosComoArray: InventarioItem[];
+
+        // --- INICIO DE LA CORRECCIÓN ---
+
+        // Caso 1 (Tu caso): La API devuelve un objeto { success: true, data: [...] }
+        if (response && response.data && Array.isArray(response.data)) {
+            datosComoArray = response.data; // <-- ¡Extraemos el array de la propiedad 'data'!
+        }
+        // Caso 2: La API devuelve un array simple [...]
+        else if (Array.isArray(response)) {
+            datosComoArray = response;
+        } 
+        // Caso 3: La API devuelve un solo objeto { id_inventario: ... }
+        else if (response && typeof response === 'object' && response.id_inventario) {
+            datosComoArray = [response]; 
+        } 
+        // Caso 4: No se encontró nada o la respuesta no es válida
+        else {
+            datosComoArray = []; 
+        }
+        // --- FIN DE LA CORRECCIÓN ---
+
+this.inventario = datosComoArray; 
+this.inventarioMostrado = this.procesarInventarioParaVista(datosComoArray);
+ this.resultCount = datosComoArray.length;
+ },
+ error: (err) => this.showAlert(err.message, 'danger')
+ });
+}
+
 
   // --- Modal Angular ---
   abrirModal(modo: 'nuevo' | 'editar', item?: InventarioItem): void {
@@ -192,8 +207,6 @@ export class inventarios implements OnInit {
   }
 
   // --- Guardar o actualizar ---
-
-// --- Guardar o actualizar ---
   guardarInventario(): void {
     // 1. Validación
     if (!this.formInventarioData.id_producto || !this.formInventarioData.id_bodega || !this.formInventarioData.fecha_entrada) {
@@ -201,10 +214,16 @@ export class inventarios implements OnInit {
       return; 
     }
 
+    // ✅ CORRECCIÓN: Implementar bloqueo de doble clic
+    if (this.isSaving) {
+      console.warn('Bloqueado: Intento de guardado duplicado.');
+      return; // Ya se está procesando un guardado
+    }
+    this.isSaving = true; // Bloquear el botón
+
     // 2. Lógica de Guardado/Actualización
     if (this.modoEdicion) {
       // --- Actualizar ---
-      // ✅ RESTAURADO: Aquí están tus propiedades
       const payload: InventarioUpdate = {
         fecha_entrada: this.formInventarioData.fecha_entrada,
         fecha_salida: this.formInventarioData.fecha_salida || null, 
@@ -219,18 +238,18 @@ export class inventarios implements OnInit {
           this.showAlert('✅ Registro actualizado exitosamente', 'success');
           this.cargarInventario(); 
           this.cerrarModal();
+          this.isSaving = false; // Desbloquear
         },
-        // ✅ APLICADO: El log de error mejorado
         error: (err) => {
           console.error('Error al ACTUALIZAR:', err); // Log completo
           const errorMsg = err.error?.message || err.message; 
           this.showAlert(`Error al actualizar: ${errorMsg}`, 'danger');
+          this.isSaving = false; // Desbloquear
         }
       });
 
     } else {
       // --- Crear nuevo ---
-      // ✅ RESTAURADO: Aquí están tus propiedades
       const payload: InventarioCreate = {
         fecha_entrada: this.formInventarioData.fecha_entrada,
         id_producto: this.formInventarioData.id_producto,
@@ -244,56 +263,14 @@ export class inventarios implements OnInit {
           this.showAlert('✅ Inventario agregado exitosamente', 'success');
           this.cargarInventario(); 
           this.cerrarModal();
+          this.isSaving = false; // Desbloquear
         },
-        // ✅ APLICADO: El log de error mejorado
         error: (err) => {
           console.error('Error al CREAR:', err); // Log completo
           const errorMsg = err.error?.message || err.message;
           this.showAlert(`Error al crear: ${errorMsg}`, 'danger');
+          this.isSaving = false; // Desbloquear
         }
-      });
-    }
-  
-  
-
-    // 2. Lógica de Guardado/Actualización
-    if (this.modoEdicion) {
-      // --- Actualizar ---
-      const payload: InventarioUpdate = {
-        fecha_entrada: this.formInventarioData.fecha_entrada,
-        fecha_salida: this.formInventarioData.fecha_salida || null, 
-        id_producto: this.formInventarioData.id_producto,
-        id_bodega: this.formInventarioData.id_bodega,
-        humedad: this.formInventarioData.humedad,
-        fermentacion: this.formInventarioData.fermentacion
-      };
-
-      this.inventarioService.actualizarInventario(this.formInventarioData.id_inventario, payload).subscribe({
-        next: () => {
-          this.showAlert('✅ Registro actualizado exitosamente', 'success');
-          this.cargarInventario(); 
-          this.cerrarModal();
-        },
-        error: (err) => this.showAlert(`Error al actualizar: ${err.message}`, 'danger')
-      });
-
-    } else {
-      // --- Crear nuevo ---
-      const payload: InventarioCreate = {
-        fecha_entrada: this.formInventarioData.fecha_entrada,
-        id_producto: this.formInventarioData.id_producto,
-        id_bodega: this.formInventarioData.id_bodega,
-        humedad: this.formInventarioData.humedad,
-        fermentacion: this.formInventarioData.fermentacion
-      };
-
-      this.inventarioService.agregarInventario(payload).subscribe({
-        next: () => {
-          this.showAlert('✅ Inventario agregado exitosamente', 'success');
-          this.cargarInventario(); 
-          this.cerrarModal();
-        },
-        error: (err) => this.showAlert(`Error al crear: ${err.message}`, 'danger')
       });
     }
   }

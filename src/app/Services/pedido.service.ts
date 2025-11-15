@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
 
 // --- INTERFACES BASADAS EN TU BACKEND ---
 
 // Para la tabla (incluye los JOINs de tu GET /api/pedidos)
 export interface Pedido {
-  id_pedido: number;
+  id_pedido: string; // Corregido: Debe ser string (VARCHAR) según tu CREATE TABLE
   cedula: string;
   id_producto: string;
   fecha_entrega: string;
@@ -20,6 +19,8 @@ export interface Pedido {
 
 // Para crear un pedido (basado en tu POST /api/pedidos)
 export interface PedidoCreate {
+  // AÑADIDO: id_pedido es OBLIGATORIO ya que el backend lo requiere
+  id_pedido: string;
   cedula: string;
   id_producto: string;
   fecha_entrega: string;
@@ -83,7 +84,7 @@ export class PedidoService {
       }
       
       // Devuelve solo el array/objeto 'data'
-      return jsonResponse.data; 
+      return jsonResponse.data;
 
     } catch (error) {
       console.error('Error en la petición API:', error);
@@ -96,8 +97,6 @@ export class PedidoService {
   }
 
   // --- Métodos CRUD para Pedidos ---
-  // --- Métodos CRUD para Pedidos ---
-
   getPedidos(): Promise<Pedido[]> {
     return this.apiRequest(`${this.API_BASE}/pedidos`);
   }
@@ -131,14 +130,11 @@ export class PedidoService {
   }
 
   // --- Métodos para Dropdowns (basados en tu backend) ---
-
   getProveedores(): Promise<ProveedorDropdown[]> {
-    // Tu backend ya tiene esta ruta para los dropdowns
-    return this.apiRequest('http://localhost:3005/api/proveedores');
+    return this.apiRequest('/api/proveedores');
   }
 
   getProductos(): Promise<ProductoDropdown[]> {
-    // Tu backend ya tiene esta ruta para los dropdowns
-    return this.apiRequest('http://localhost:3005/api/productos');
+    return this.apiRequest('/api/productos');
   }
 }
